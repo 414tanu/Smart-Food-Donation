@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    @apply bg-slate-50;
+  }
+
+  body {
+    @apply bg-[radial-gradient(circle_at_top_left,#ecfdf5_0,#f8fafc_34%,#ffffff_72%)] text-slate-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-full bg-emerald-600 px-6 py-2 font-semibold text-white shadow-sm shadow-emerald-900/10 transition-all hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0;
+  }
+  
+  .btn-secondary {
+    @apply rounded-full bg-amber-500 px-6 py-2 font-semibold text-white shadow-sm shadow-amber-900/10 transition-all hover:-translate-y-0.5 hover:bg-amber-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 active:translate-y-0;
+  }
+  
+  .btn-outline {
+    @apply rounded-full border border-emerald-200 bg-white px-6 py-2 font-semibold text-emerald-700 shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 active:translate-y-0;
+  }
+  
+  .input-field {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-slate-900 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100;
+  }
+  
+  .glass-card {
+    @apply rounded-2xl border border-white/80 bg-white/90 shadow-xl shadow-emerald-950/5 backdrop-blur-md;
+  }
+}
+
+/* Custom scrollbar for a polished look */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f8fafc; 
+}
+::-webkit-scrollbar-thumb {
+  background: #a7f3d0; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #34d399; 
+}
