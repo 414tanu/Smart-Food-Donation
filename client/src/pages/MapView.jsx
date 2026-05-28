@@ -6,13 +6,13 @@ import api from '../api/axios';
 import { toast } from 'react-toastify';
 import { Clock, Navigation, CheckCircle, ShieldCheck, Utensils, Leaf } from 'lucide-react';
 
-// Fix for default marker icons in React Leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+// Fix for default marker icons in React Leaflet (Sometimes causes issues in newer React/Vite setups)
+// delete L.Icon.Default.prototype._getIconUrl;
+// L.Icon.Default.mergeOptions({
+//   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+//   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+//   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+// });
 
 const RecenterAutomatically = ({ lat, lng }) => {
   const map = useMap();
@@ -139,7 +139,12 @@ const MapView = () => {
         {/* Map Area */}
         <div className="w-full md:w-2/3 h-64 md:h-full relative z-0">
           {location.lat && (
-            <MapContainer center={[location.lat, location.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <MapContainer 
+              key={`${location.lat}-${location.lng}`} 
+              center={[location.lat, location.lng]} 
+              zoom={13} 
+              style={{ height: '100%', width: '100%' }}
+            >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -156,7 +161,7 @@ const MapView = () => {
                 <Marker
                   key={donation._id}
                   position={[donation.location.lat, donation.location.lng]}
-                  icon={donation.insights?.urgencyLevel === 'critical' ? criticalDonationIcon : undefined}
+                  {...(donation.insights?.urgencyLevel === 'critical' ? { icon: criticalDonationIcon } : {})}
                 >
                   <Popup className="custom-popup">
                     <div className="p-1 min-w-[200px]">
