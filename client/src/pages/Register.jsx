@@ -62,7 +62,13 @@ const Register = () => {
 
   const getLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
+      toast.warning('Geolocation not supported. Using default city location.');
+      setLocation({
+        ...location,
+        lat: 28.6139,
+        lng: 77.2090,
+        address: 'New Delhi (Default Location)'
+      });
       return;
     }
     
@@ -73,12 +79,18 @@ const Register = () => {
           ...location,
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          address: 'Location pinned (coordinates saved)' // In a real app, use reverse geocoding API
+          address: 'Location pinned (coordinates saved)'
         });
         toast.success('Location fetched successfully!');
       },
       (error) => {
-        toast.error('Location permission is required for donor registration');
+        toast.warning('Location permission denied. Using default city location.');
+        setLocation({
+          ...location,
+          lat: 28.6139,
+          lng: 77.2090,
+          address: 'New Delhi (Default Location)'
+        });
       }
     );
   };

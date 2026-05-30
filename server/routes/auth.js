@@ -153,4 +153,56 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// @route PUT /api/auth/profile
+// @desc Update user profile
+router.put('/profile', require('../middleware/authMiddleware').protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const { name, phone, currentPassword, newPassword } = req.body;
+
+    if (name) user.name = name;
+    
+    if (phone) {
+      if (!phonePattern.test(phone)) {
+        return res.status(400).json({ message: 'Phone number must be exactly 10 digits' });
+      }
+      user.phone = phone;
+    }
+
+    if (currentPassword && newPassword) {
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: 'New password must be at least 8 characters' });
+      }
+      
+      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Invalid current password' });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    const updatedUser = await user.save();
+    
+    res.json({
+      _id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+      organization: updatedUser.organization,
+      location: updatedUser.location
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error updating profile' });
+  }
+});
+
 module.exports = router;

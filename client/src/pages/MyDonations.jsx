@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { toast } from 'react-toastify';
-import { Trash2, Clock, CheckCircle, Package, Leaf, Utensils, ShieldCheck } from 'lucide-react';
+import { Trash2, Clock, CheckCircle, Package, Leaf, Utensils, ShieldCheck, Key } from 'lucide-react';
 import ImpactCard from '../components/ImpactCard';
 
 const MyDonations = () => {
@@ -103,6 +103,18 @@ const MyDonations = () => {
                     <Clock className="w-4 h-4 mr-1 text-gray-400" />
                     Expires: {new Date(donation.expiryTime).toLocaleString()}
                   </div>
+                  
+                  {donation.status === 'accepted' && donation.verificationPin && (
+                    <div className="mt-2 p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between">
+                      <div className="flex items-center text-blue-800 text-sm font-medium">
+                        <Key className="w-4 h-4 mr-2" />
+                        Collection PIN
+                      </div>
+                      <div className="text-xl font-bold tracking-widest text-blue-900">
+                        {donation.verificationPin}
+                      </div>
+                    </div>
+                  )}
 
                   {['collected', 'delivered'].includes(donation.status) && (
                     <ImpactCard donationId={donation._id} />

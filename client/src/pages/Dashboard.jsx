@@ -42,15 +42,15 @@ const Dashboard = () => {
         </div>
       </Link>
       
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 opacity-75 cursor-not-allowed">
-        <div className="bg-gray-100 p-4 rounded-lg">
+      <Link to="/my-pickups" className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow flex items-center gap-4 group">
+        <div className="bg-gray-100 p-4 rounded-lg group-hover:bg-gray-200 transition-colors">
           <Heart className="w-8 h-8 text-gray-600" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-800">My Impact</h3>
-          <p className="text-gray-500">View your collection stats (Coming Soon)</p>
+          <h3 className="text-xl font-bold text-gray-800">My Pickups</h3>
+          <p className="text-gray-500">Manage and verify your active collections</p>
         </div>
-      </div>
+      </Link>
     </div>
   );
 

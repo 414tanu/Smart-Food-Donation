@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import AuthContext from '../context/AuthContext';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../api/axios';
@@ -7,12 +8,12 @@ import { toast } from 'react-toastify';
 import { Clock, Navigation, CheckCircle, ShieldCheck, Utensils, Leaf } from 'lucide-react';
 
 // Fix for default marker icons in React Leaflet (Sometimes causes issues in newer React/Vite setups)
-// delete L.Icon.Default.prototype._getIconUrl;
-// L.Icon.Default.mergeOptions({
-//   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-//   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-//   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-// });
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 const RecenterAutomatically = ({ lat, lng }) => {
   const map = useMap();
@@ -39,23 +40,54 @@ const urgencyStyles = {
   normal: 'bg-green-50 text-green-700 border-green-200'
 };
 
+const ngoLocationIcon = L.divIcon({
+  className: '',
+  html: '<div style="width:28px;height:28px;border-radius:50%;background:#3b82f6;border:3px solid white;box-shadow:0 4px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:1000;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -14]
+});
+
+const standardDonationIcon = L.divIcon({
+  className: '',
+  html: '<div style="width:24px;height:24px;border-radius:50%;background:#f97316;border:3px solid white;box-shadow:0 4px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg></div>',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
+  popupAnchor: [0, -12]
+});
+
 const criticalDonationIcon = L.divIcon({
   className: '',
-  html: '<div style="width:24px;height:24px;border-radius:9999px;background:#dc2626;border:3px solid white;box-shadow:0 8px 16px rgba(220,38,38,0.35);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700">!</div>',
+  html: '<div style="width:24px;height:24px;border-radius:50%;background:#dc2626;border:3px solid white;box-shadow:0 8px 16px rgba(220,38,38,0.35);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700">!</div>',
   iconSize: [24, 24],
   iconAnchor: [12, 12],
   popupAnchor: [0, -12]
 });
 
 const MapView = () => {
+  const { user } = useContext(AuthContext);
   const [donations, setDonations] = useState([]);
   const [location, setLocation] = useState({ lat: null, lng: null });
   const [loading, setLoading] = useState(true);
   const [radius, setRadius] = useState(10); // km
+  const [processingId, setProcessingId] = useState(null);
+  const [selectedCity, setSelectedCity] = useState('current');
+
+  const CITIES = {
+    'delhi': { lat: 28.6139, lng: 77.2090, name: 'New Delhi' },
+    'noida': { lat: 28.5355, lng: 77.3910, name: 'Noida' },
+    'gurugram': { lat: 28.4595, lng: 77.0266, name: 'Gurugram' },
+    'mumbai': { lat: 19.0760, lng: 72.8777, name: 'Mumbai' }
+  };
 
   useEffect(() => {
-    getUserLocation();
-  }, []);
+    if (selectedCity === 'current') {
+      getUserLocation();
+    } else {
+      setLocation(CITIES[selectedCity]);
+      setLoading(false);
+    }
+  }, [selectedCity]);
 
   useEffect(() => {
     if (location.lat && location.lng) {
@@ -64,8 +96,22 @@ const MapView = () => {
   }, [location, radius]);
 
   const getUserLocation = () => {
+    setLoading(true);
+    
+    // Always prioritize the NGO's registered location as requested
+    if (user && user.location && user.location.lat && user.location.lng) {
+      setLocation({
+        lat: user.location.lat,
+        lng: user.location.lng
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Fallback if user location is somehow missing
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported');
+      setLocation(CITIES['delhi']);
       setLoading(false);
       return;
     }
@@ -76,13 +122,14 @@ const MapView = () => {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         });
+        setLoading(false);
       },
       (error) => {
-        toast.error('Please enable location to find nearby donations');
-        // Default to some central location (e.g., New Delhi) if denied
-        setLocation({ lat: 28.6139, lng: 77.2090 });
+        toast.error('Could not get location. Defaulting to Delhi.');
+        setLocation(CITIES['delhi']);
         setLoading(false);
-      }
+      },
+      { timeout: 5000, maximumAge: 0 }
     );
   };
 
@@ -99,12 +146,16 @@ const MapView = () => {
   };
 
   const handleAccept = async (id) => {
+    if (processingId) return;
+    setProcessingId(id);
     try {
       await api.put(`/donations/${id}/accept`);
       toast.success('Donation accepted! Donor has been notified.');
       fetchNearbyDonations(); // Refresh the list
     } catch (error) {
       toast.error(error.response?.data?.message || 'Error accepting donation');
+    } finally {
+      setProcessingId(null);
     }
   };
 
@@ -117,19 +168,40 @@ const MapView = () => {
           <p className="text-sm text-gray-500">Prioritized by expiry time, distance, and meals saved within {radius}km</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700">Radius:</label>
-          <select 
-            value={radius} 
-            onChange={(e) => setRadius(Number(e.target.value))}
-            className="input-field py-1 text-sm bg-gray-50"
-          >
-            <option value={5}>5 km</option>
-            <option value={10}>10 km</option>
-            <option value={20}>20 km</option>
-            <option value={50}>50 km</option>
-          </select>
-          <button onClick={getUserLocation} className="btn-outline py-1 px-3 text-sm flex items-center gap-1">
+        <div className="flex items-center flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Location:</label>
+            <select 
+              value={selectedCity} 
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="input-field py-1 px-2 text-sm bg-gray-50 border rounded"
+            >
+              <option value="current">Current Location</option>
+              <option value="delhi">New Delhi</option>
+              <option value="noida">Noida</option>
+              <option value="gurugram">Gurugram</option>
+              <option value="mumbai">Mumbai</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Radius:</label>
+            <select 
+              value={radius} 
+              onChange={(e) => setRadius(Number(e.target.value))}
+              className="input-field py-1 px-2 text-sm bg-gray-50 border rounded"
+            >
+              <option value={5}>5 km</option>
+              <option value={10}>10 km</option>
+              <option value={20}>20 km</option>
+              <option value={50}>50 km</option>
+            </select>
+          </div>
+
+          <button onClick={() => {
+            if (selectedCity === 'current') getUserLocation();
+            else setLocation({...CITIES[selectedCity]}); // trigger re-center
+          }} className="btn-outline py-1 px-3 text-sm flex items-center gap-1 border border-gray-300 rounded hover:bg-gray-50">
             <Navigation className="w-4 h-4" /> Recenter
           </button>
         </div>
@@ -152,8 +224,8 @@ const MapView = () => {
               <RecenterAutomatically lat={location.lat} lng={location.lng} />
               
               {/* User Location Marker */}
-              <Marker position={[location.lat, location.lng]} opacity={0.7}>
-                <Popup>Your current location</Popup>
+              <Marker position={[location.lat, location.lng]} icon={ngoLocationIcon} zIndexOffset={1000}>
+                <Popup><strong>Your NGO Center</strong><br/>{location.address || 'Base Location'}</Popup>
               </Marker>
               
               {/* Donation Markers */}
@@ -161,7 +233,7 @@ const MapView = () => {
                 <Marker
                   key={donation._id}
                   position={[donation.location.lat, donation.location.lng]}
-                  {...(donation.insights?.urgencyLevel === 'critical' ? { icon: criticalDonationIcon } : {})}
+                  icon={donation.insights?.urgencyLevel === 'critical' ? criticalDonationIcon : standardDonationIcon}
                 >
                   <Popup className="custom-popup">
                     <div className="p-1 min-w-[200px]">
@@ -186,9 +258,10 @@ const MapView = () => {
                       
                       <button 
                         onClick={() => handleAccept(donation._id)}
-                        className="w-full bg-green-600 text-white text-sm py-2 rounded-md hover:bg-green-700 transition-colors"
+                        disabled={processingId === donation._id}
+                        className={`w-full bg-green-600 text-white text-sm py-2 rounded-md transition-colors ${processingId === donation._id ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-700'}`}
                       >
-                        Accept Pickup
+                        {processingId === donation._id ? 'Accepting...' : 'Accept Pickup'}
                       </button>
                     </div>
                   </Popup>
@@ -261,9 +334,10 @@ const MapView = () => {
                   
                   <button 
                     onClick={() => handleAccept(donation._id)}
-                    className="text-sm bg-green-50 text-green-700 hover:bg-green-600 hover:text-white px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1"
+                    disabled={processingId === donation._id}
+                    className={`text-sm bg-green-50 text-green-700 px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1 ${processingId === donation._id ? 'opacity-70 cursor-not-allowed' : 'hover:bg-green-600 hover:text-white'}`}
                   >
-                    <CheckCircle className="w-4 h-4" /> Accept
+                    <CheckCircle className="w-4 h-4" /> {processingId === donation._id ? 'Accepting...' : 'Accept'}
                   </button>
                 </div>
               </div>

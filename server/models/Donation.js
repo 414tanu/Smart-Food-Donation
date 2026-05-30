@@ -130,6 +130,9 @@ const donationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
+  verificationPin: {
+    type: String,
+  },
   collectedAt: {
     type: Date
   }

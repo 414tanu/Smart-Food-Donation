@@ -8,9 +8,11 @@ import Dashboard from './pages/Dashboard';
 import PostDonation from './pages/PostDonation';
 import MyDonations from './pages/MyDonations';
 import MapView from './pages/MapView';
+import MyPickups from './pages/MyPickups';
 import AdminPanel from './pages/AdminPanel';
 import ProtectedRoute from './components/ProtectedRoute';
 import ExpiryAlertNotifications from './components/ExpiryAlertNotifications';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -31,6 +33,11 @@ function App() {
                 <Dashboard />
               </ProtectedRoute>
             } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             
             {/* Donor Routes */}
             <Route path="/post-donation" element={
@@ -48,6 +55,11 @@ function App() {
             <Route path="/map-view" element={
               <ProtectedRoute allowedRoles={['ngo']}>
                 <MapView />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-pickups" element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <MyPickups />
               </ProtectedRoute>
             } />
             

@@ -115,6 +115,9 @@ router.post('/', protect, authorize('donor'), upload.single('image'), async (req
       imageUrl = req.file.path; // Cloudinary URL
     }
 
+    // Generate a 4-digit PIN for verification
+    const verificationPin = Math.floor(1000 + Math.random() * 9000).toString();
+
     const donation = await Donation.create({
       donor: req.user._id,
       foodName,
@@ -133,7 +136,8 @@ router.post('/', protect, authorize('donor'), upload.single('image'), async (req
       safePickupWindow: expiryRisk.safePickupWindow,
       imageUrl,
       expiryTime,
-      location
+      location,
+      verificationPin
     });
 
     res.status(201).json(donation);
@@ -183,6 +187,21 @@ router.get('/critical-alerts', protect, authorize('ngo'), async (req, res) => {
       .sort((a, b) => new Date(a.expiryTime) - new Date(b.expiryTime));
 
     res.json(nearbyCriticalDonations);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// @route GET /api/donations/my-pickups
+// @desc Get donations accepted by the logged in NGO
+// @access Private (NGO only)
+router.get('/my-pickups', protect, authorize('ngo'), async (req, res) => {
+  try {
+    const donations = await Donation.find({ acceptedBy: req.user._id })
+      .populate('donor', 'name phone organization address')
+      .sort({ updatedAt: -1 });
+    res.json(donations);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
@@ -278,6 +297,7 @@ router.put('/:id/accept', protect, authorize('ngo'), async (req, res) => {
 // @access Private (NGO only)
 router.put('/:id/deliver', protect, authorize('ngo'), async (req, res) => {
   try {
+    const { pin } = req.body;
     const donation = await Donation.findById(req.params.id);
     
     if (!donation) {
@@ -287,6 +307,11 @@ router.put('/:id/deliver', protect, authorize('ngo'), async (req, res) => {
     // Must be accepted by the same NGO
     if (donation.acceptedBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized to update this donation' });
+    }
+
+    // Verify PIN if the donation has one
+    if (donation.verificationPin && donation.verificationPin !== pin) {
+      return res.status(400).json({ message: 'Invalid verification PIN' });
     }
 
     donation.status = 'collected';
@@ -299,6 +324,7 @@ router.put('/:id/deliver', protect, authorize('ngo'), async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 // @route DELETE /api/donations/:id
 // @desc Delete a donation

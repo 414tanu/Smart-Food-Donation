@@ -185,12 +185,12 @@ const PostDonation = () => {
             
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Description & Special Notes</label>
-              <textarea name="description" rows="3" className="input-field" placeholder="E.g., Vegetarian only, contains nuts, pick up before 5 PM..." value={formData.description} onChange={handleChange}></textarea>
+              <textarea name="description" rows="3" className="input-field" placeholder="E.g., Vegetarian only, contains nuts, pick up before 5 PM..." value={formData.description} onChange={handleChange} required></textarea>
             </div>
 
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Instructions</label>
-              <textarea name="pickupInstructions" rows="2" className="input-field" placeholder="Gate number, contact person, packaging count, parking note..." value={formData.pickupInstructions} onChange={handleChange}></textarea>
+              <textarea name="pickupInstructions" rows="2" className="input-field" placeholder="Gate number, contact person, packaging count, parking note..." value={formData.pickupInstructions} onChange={handleChange} required></textarea>
             </div>
 
             <div className="col-span-2 rounded-lg border border-green-100 bg-green-50 p-4">
@@ -216,9 +216,9 @@ const PostDonation = () => {
             
             <div className="col-span-2 md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                <ImageIcon className="w-4 h-4 text-gray-400" /> Food Image (Optional)
+                <ImageIcon className="w-4 h-4 text-gray-400" /> Food Image
               </label>
-              <input type="file" accept="image/*" onChange={handleImageChange} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
+              <input type="file" accept="image/*" onChange={handleImageChange} required className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
             </div>
             
             <div className="col-span-2 md:col-span-1">

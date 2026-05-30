@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, User } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import FoodBridgeLogo from './FoodBridgeLogo';
 
@@ -47,6 +47,11 @@ const Navbar = () => {
                     Find Food
                   </Link>
                 )}
+                
+                <Link to="/profile" className="flex items-center space-x-1 rounded-full px-3 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-emerald-50 hover:text-emerald-700">
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </Link>
                 
                 <button 
                   onClick={handleLogout}
@@ -103,6 +108,13 @@ const Navbar = () => {
                     Find Food
                   </Link>
                 )}
+                <Link 
+                  to="/profile" 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-green-50"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Profile
+                </Link>
                 <button 
                   onClick={handleLogout}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
